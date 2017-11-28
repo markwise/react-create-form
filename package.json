@@ -1,0 +1,19 @@
+{
+  "name": "react-create-form",
+  "version": "0.0.1",
+  "description": "A react form state management and validation framework.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markwise/react-create-form.git"
+  },
+  "author": "Mark Wise",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/markwise/react-create-form/issues"
+  },
+  "homepage": "https://github.com/markwise/react-create-form#readme"
+}
