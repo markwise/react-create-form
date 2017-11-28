@@ -1,2 +1,2 @@
 # react-create-form
-React form state management and validation framework
+A react form state management and validation framework.
