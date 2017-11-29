@@ -16,6 +16,9 @@
     "url": "https://github.com/markwise/react-create-form/issues"
   },
   "homepage": "https://github.com/markwise/react-create-form#readme",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",

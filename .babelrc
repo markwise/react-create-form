@@ -1,5 +1,11 @@
 {
-  "presets": ["react", "env"],
+  "presets": [
+    "react",
+    ["env", {
+      "targets": {"browsers": ["ie >= 10"]},
+      "useBuiltIns": true
+    }]
+  ],
   "plugins": [
     "transform-object-rest-spread",
     "transform-class-properties"
