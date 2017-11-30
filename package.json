@@ -2,22 +2,22 @@
   "name": "react-create-form",
   "version": "0.0.3",
   "description": "A react form state management and validation framework.",
+  "license": "ISC",
+  "author": "Mark Wise",
+  "homepage": "https://github.com/markwise/react-create-form#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markwise/react-create-form.git"
+  },
+  "bugs": {
+    "url": "https://github.com/markwise/react-create-form/issues"
+  },
   "main": "lib/index.js",
   "scripts": {
     "build": "webpack",
     "start": "npm run build -- -w",
     "prepublishOnly": "npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/markwise/react-create-form.git"
-  },
-  "author": "Mark Wise",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/markwise/react-create-form/issues"
-  },
-  "homepage": "https://github.com/markwise/react-create-form#readme",
   "dependencies": {
     "babel-polyfill": "^6.26.0"
   },
