@@ -1,9 +1,9 @@
-const path = require('path')
+import path from 'path'
 
 const src = path.resolve(__dirname, 'src')
 const lib = path.resolve(__dirname, 'lib')
 
-const config = {
+export default {
   entry: path.resolve(src, 'index.js'),
 
   output: {
@@ -25,5 +25,3 @@ const config = {
     'prop-types': 'prop-types'
   }
 }
-
-module.exports = config
