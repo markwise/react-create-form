@@ -1,10 +1,10 @@
 {
   "presets": [
-    "react",
     ["env", {
       "targets": {"browsers": ["ie >= 11"]},
       "useBuiltIns": true
-    }]
+    }],
+    "react"
   ],
   "plugins": [
     "transform-object-rest-spread",
