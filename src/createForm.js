@@ -32,8 +32,8 @@ const getDisplayName = Component => (
 )
 
 export const createForm = (WrappedComponent, fields) => (
-  class Form extends Component {
-    static displayName = `Form(${getDisplayName(WrappedComponent)})`
+  class FormHOC extends Component {
+    static displayName = `FormHOC(${getDisplayName(WrappedComponent)})`
 
     constructor(props) {
       super(props)
@@ -199,8 +199,6 @@ export const createForm = (WrappedComponent, fields) => (
 
 
     render() {
-      console.log(this.state)
-
       return (
         <WrappedComponent
           {...this.props}
