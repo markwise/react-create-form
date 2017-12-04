@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {mount, shallow} from 'enzyme'
+import {shallow} from 'enzyme'
 import {createForm} from './createForm'
 import {rules} from './rules'
 
@@ -357,33 +357,32 @@ describe('wrapped component props.validate', () => {
       lastName: {rules: [rules.required()()]}
     })
 
-    expect(wrapper.state()).toMatchObject({
-      firstName: {clean: true},
-      lastName: {clean: true}
-    })
+    let state = wrapper.state()
+    expect(state.firstName.clean).toBe(true)
+    expect(state.lastName.clean).toBe(true)
 
-    let props = wrapper.props()
-    let form = props.form
-    expect(form).toMatchObject({
-      errors: [],
-      firstName: {errors: [], error: ''},
-      lastName: {errors: [], error: ''}
-    })
+    let {form} = wrapper.props()
+    expect(form.errors.length).toBe(0)
+    let {firstName} = form
+    expect(firstName.errors.length).toBe(0)
+    expect(firstName.error.length).toBe(0)
+    let {lastName} = form
+    expect(lastName.errors.length).toBe(0)
+    expect(lastName.error.length).toBe(0)
 
-    props.validate(form).catch(() => {})
+    wrapper.props().validate(form).catch(() => {})
     wrapper.update()
 
-    expect(wrapper.state()).toMatchObject({
-      firstName: {clean: false},
-      lastName: {clean: false}
-    })
+    state = wrapper.state()
+    expect(state.firstName.clean).toBe(false)
+    expect(state.lastName.clean).toBe(false)
 
     form = wrapper.props().form
     expect(form.errors.length).toBe(2)
-    let {firstName} = form
+    firstName = form.firstName
     expect(firstName.errors.length).toBe(1)
     expect(firstName.error.length).toBeGreaterThan(0)
-    let {lastName} = form
+    lastName = form.lastName
     expect(lastName.errors.length).toBe(1)
     expect(lastName.error.length).toBeGreaterThan(0)
   })
@@ -400,7 +399,56 @@ describe('wrapped component props.validate', () => {
 })
 
 
-describe('wrapped component props.getFormData', () => {})
+describe('wrapped component props.getFormData', () => {
+  it('should resolve promise with FormData', async () => {
+    let wrapper = createShallowWrapper({
+      name: {value: 'Mark Wise'},
+      tags: {value: ['React', 'Redux']}
+    })
+
+    expect.assertions(2)
+    let formData = await wrapper.props().getFormData()
+    expect(formData.get('name')).toBe('Mark Wise')
+    expect(formData.get('tags')).toBe('React,Redux')
+  })
+
+  it('should filter blacklist', async () => {
+    let wrapper = createShallowWrapper({
+      foo: {value: 'FOO'},
+      bar: {value: 'BAR'},
+      baz: {value: 'BAZ'}
+    })
+
+    expect.assertions(3)
+    let formData = await wrapper.props().getFormData(['baz'])
+    expect(formData.get('foo')).toBe('FOO')
+    expect(formData.get('bar')).toBe('BAR')
+    expect(formData.has('baz')).toBe(false)
+  })
+})
 
 
-describe('wrapped component props.getFormDataAsJSON', () => {})
+describe('wrapped component props.getFormDataAsJSON', () => {
+  it('should resolve promise with JSON', async () => {
+    let wrapper = createShallowWrapper({
+      name: {value: 'Mark Wise'},
+      tags: {value: ['React', 'Redux']}
+    })
+
+    expect.assertions(1)
+    let json = await wrapper.props().getFormDataAsJSON()
+    expect(json).toBe('{"tags":["React","Redux"],"name":"Mark Wise"}')
+  })
+
+  it('should filter blacklist', async () => {
+    let wrapper = createShallowWrapper({
+      foo: {value: 'FOO'},
+      bar: {value: 'BAR'},
+      baz: {value: 'BAZ'}
+    })
+
+    expect.assertions(1)
+    let json = await wrapper.props().getFormDataAsJSON(['baz'])
+    expect(json).toBe('{"bar":"BAR","foo":"FOO"}')
+  })
+})
