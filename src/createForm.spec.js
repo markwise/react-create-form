@@ -36,7 +36,7 @@ describe('hoc', () => {
     let wrapper = createShallowWrapper({name: {rules}})
     let {name} = wrapper.state()
     expect(name.value).toBe('')
-    expect(name.label).toBe('')
+    expect(name.label).toBe('Field')
     expect(name.rules).toBe(rules)
     expect(name.clean).toBe(true)
   })
