@@ -1,22 +1,28 @@
-const validateField = ({rules, value, label}, state) => {
+const validateField = ({rules, value, label}, fields) => {
   let errors = []
 
   rules.forEach(validate => {
-    let error = validate(value.toString().trim(), label, state)
+    let error = validate(value.toString().trim(), label, fields)
     if (error) errors = [...errors, error]
   })
 
   return errors
 }
 
+const getFields = entries => (
+  entries.reduce((fields, [name, {value}]) => (
+    {...fields, [name]: value}
+  ), {})
+)
 
-// TODO: deep clone state to prevent altering it with a custom validation rule
 export const validateForm = state => {
   let form = {}
   let allErrors = []
   let fieldValidity = []
+  let entries = Object.entries(state)
+  let fields = getFields(entries)
 
-  Object.entries(state).forEach(([name, {label, value, rules, clean}]) => {
+  entries.forEach(([name, {label, value, rules, clean}]) => {
     let field = {value}
 
     // Does the field have validation rules
@@ -26,7 +32,7 @@ export const validateForm = state => {
 
       // Has the field been interacted with (not in an indeterminate state)
       if (!clean) {
-        let errors = validateField({rules, value, label}, state)
+        let errors = validateField({rules, value, label}, fields)
         if (errors.length) {
           field = {...field, errors, error: errors[0]}
           allErrors = [...allErrors, errors]
