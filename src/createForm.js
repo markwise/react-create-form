@@ -22,7 +22,11 @@ const createInitialState = fields => (
   Object.entries(fields)
     .reduce((state, [name, {label = 'Field', value = '', rules}]) => {
       let field = {value}
-      if (rules && rules.length) field = {...field, label, rules, clean: true}
+
+      if (rules && rules.length) {
+        field = {...field, label, rules, clean: !value.length}
+      }
+
       return {...state, [name]: field}
     }, {})
 )
@@ -81,16 +85,16 @@ export const createForm = (WrappedComponent, fields) => (
 
     /**
      * Technically this method does not validate, but forces all fields to be
-     * eligible for validation on the next render by setting each fields clean
+     * eligible for validation on the next render by setting each field's clean
      * property to false. This means a field is not in an indeterminate state.
      *
      * @param {Object} form
-     *    A validated form object passed as props.form to the WrappedComponent.
+     *    A validated form object. This is passed internally.
      *
      * @returns {Promise}
      *    A resolved promise if the form is valid, otherwise, a rejected promise.
      */
-    validate(form = {}) {
+    validate(form) {
       if (form.willSubmit) {
         return Promise.resolve()
       } else {
@@ -199,13 +203,14 @@ export const createForm = (WrappedComponent, fields) => (
 
 
     render() {
+      let form = validateForm(this.state)
       return (
         <WrappedComponent
           {...this.props}
-          form={validateForm(this.state)}
+          form={form}
           onChange={this.handleChange}
           onReset={this.handleReset}
-          validate={this.validate}
+          validate={() => this.validate(form)}
           getFormData={this.getFormData}
           getFormDataAsJSON={this.getFormDataAsJSON}
         />

@@ -66,7 +66,7 @@ describe('hoc', () => {
     expect(name.value).toBe('Mark Wise')
     expect(name.label).toBe('Name')
     expect(name.rules).toBe(rules)
-    expect(name.clean).toBe(true)
+    expect(name.clean).toBe(false)
   })
 })
 
@@ -388,13 +388,29 @@ describe('wrapped component props.validate', () => {
   })
 
   it('should resolve promise', done => {
-    let wrapper = createShallowWrapper({})
-    wrapper.props().validate({willSubmit: true}).then(() => done())
+    let wrapper = createShallowWrapper({
+      name: {
+        value: 'Mark Wise',
+        rules: [
+          rules.required()('error')
+        ]
+      }
+    })
+
+    wrapper.props().validate().then(() => done())
   })
 
   it('should reject promise', done => {
-    let wrapper = createShallowWrapper({})
-    wrapper.props().validate({willSubmit: false}).catch(() => done())
+    let wrapper = createShallowWrapper({
+      name: {
+        value: '',
+        rules: [
+          rules.required()('error')
+        ]
+      }
+    })
+
+    wrapper.props().validate().catch(() => done())
   })
 })
 
