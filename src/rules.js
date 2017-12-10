@@ -17,7 +17,7 @@ const createError = (error, args = [], label, value) => {
 
 
 const createRule = isValid => (
-  (...args) => (error = '') => (value = '', label = '', state) => (
+  (...args) => (error = '') => (value = '', label, state) => (
     isValid(value, args, state) ? '' : createError(error, args, label, value)
   )
 )
@@ -50,7 +50,7 @@ export const rules = {
   }),
 
   custom: validate => (
-    (value = '', label = '', state) => {
+    (value = '', label, state) => {
       let error = validate(value, state)
       if (typeof error !== 'string') error = ''
       return error ? createError(error, void 0, label, value) : ''
