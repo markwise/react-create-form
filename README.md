@@ -1,4 +1,7 @@
 # react-create-form
+
+[![Build Status](https://travis-ci.org/markwise/react-create-form.svg?branch=master)](https://travis-ci.org/markwise/react-create-form)
+
 A React form state management and validation framework.
 
 It's designed to be flexible and intuitive and makes no assumptions about the style and structure of a form. As such, it can be integrated with an existing UI framework or form component library.
