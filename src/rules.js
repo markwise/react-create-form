@@ -10,9 +10,6 @@ const createError = (error = '', args = [], label, value) => {
     .replace(/\$label/g, label)
     .replace(/\$value/g, value)
 
-  // TODO: sanitize error before eval
-  // TODO: throw error on eval if required rule argument undefined (not sure)
-  // TODO: handle html in error message
   return error ? eval('`' + error + '`') : 'Validation failed.'
 }
 
@@ -57,11 +54,4 @@ export const rules = {
       return error ? createError(error, void 0, label, value) : ''
     }
   )
-
-  // TODO: add email rule
-  // TODO: add phone rule
-  // TODO: add zip rule
-  // TODO: add credit card rule
-  // TODO: add compare two fields rules (might leave this as a custom rule)
-  // TODO: add date rule
 }
