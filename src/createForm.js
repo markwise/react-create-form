@@ -20,15 +20,9 @@ const filterForm = (state, blacklist = []) => (
 
 const createInitialState = fields => (
   Object.entries(fields)
-    .reduce((state, [name, {label = 'Field', value = '', rules}]) => {
-      let field = {value}
-
-      if (rules && rules.length) {
-        field = {...field, label, rules, clean: !value.length}
-      }
-
-      return {...state, [name]: field}
-    }, {})
+    .reduce((state, [name, {value = '', label = 'Field', rules = []}]) => (
+      {...state, [name]: {value, label, rules, clean: !value.length}}
+    ), {})
 )
 
 const getDisplayName = Component => (

@@ -21,45 +21,17 @@ describe('hoc', () => {
     expect(p.getFormDataAsJSON).toEqual(expect.any(Function))
   })
 
-  it('should init default values', () => {
+  it('should initialize with default values', () => {
     let wrapper = createShallowWrapper({name: {}})
     let {name} = wrapper.state()
     expect(name.value).toBe('')
-    // label, rules and clean should only be set for fields that will validate
-    expect(name).not.toHaveProperty('label')
-    expect(name).not.toHaveProperty('rules')
-    expect(name).not.toHaveProperty('clean')
-  })
-
-  it('should init default values for fields that will validate', () => {
-    let rules = [() => {}]
-    let wrapper = createShallowWrapper({name: {rules}})
-    let {name} = wrapper.state()
-    expect(name.value).toBe('')
     expect(name.label).toBe('Field')
-    expect(name.rules).toBe(rules)
+    expect(name.rules).toEqual(expect.any(Array))
     expect(name.clean).toBe(true)
   })
 
-  it('should not init default values for fields that will validate', () => {
-    let wrapper = createShallowWrapper({name: {rules: []}})
-    let {name} = wrapper.state()
-    expect(name.value).toBe('')
-    // rules must have at least one validation function for label, rules and
-    // clean to be set
-    expect(name).not.toHaveProperty('label')
-    expect(name).not.toHaveProperty('rules')
-    expect(name).not.toHaveProperty('clean')
-  })
-
-  it('should init values', () => {
-    let wrapper = createShallowWrapper({name: {value: 'Mark Wise'}})
-    let {name} = wrapper.state()
-    expect(name.value).toBe('Mark Wise')
-  })
-
-  it('should init values for fields that will validate', () => {
-    let rules = [() => {}]
+  it('should initialize with definition values', () => {
+    let rules = []
     let fields = {name: {value: 'Mark Wise', label: 'Name', rules}}
     let wrapper = createShallowWrapper(fields)
     let {name} = wrapper.state()
@@ -105,18 +77,8 @@ describe('wrapped component', () => {
     expect(willSubmit).toBe(false)
   })
 
-  it('props.form.<field> should have shape', () => {
+  it('props.form[field] should have shape', () => {
     let wrapper = createShallowWrapper({name: {}})
-    let props = wrapper.props()
-    let {name} = props.form
-    expect(name.value).toBe('')
-    // errors and error exist if the field will validate
-    expect(name).not.toHaveProperty('errors')
-    expect(name).not.toHaveProperty('error')
-  })
-
-  it('props.form.<field> should have shape when field will validate', () => {
-    let wrapper = createShallowWrapper({name: {rules: [() => {}]}})
     let props = wrapper.props()
     let {value, errors, error} = props.form.name
     expect(value).toBe('')

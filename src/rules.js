@@ -1,4 +1,4 @@
-const createError = (error, args = [], label, value) => {
+const createError = (error = '', args = [], label, value) => {
   // Replace $1...$5 rule argument patterns
   // Not used with custom rule validators
   error = args.reduce((acc, arg, index) => (
@@ -11,14 +11,15 @@ const createError = (error, args = [], label, value) => {
     .replace(/\$value/g, value)
 
   // TODO: sanitize error before eval
-  // TODO: throw error on eval if required rule argument undefined
+  // TODO: throw error on eval if required rule argument undefined (not sure)
+  // TODO: handle html in error message
   return error ? eval('`' + error + '`') : 'Validation failed.'
 }
 
 
-const createRule = isValid => (
-  (...args) => (error = '') => (value = '', label, fields) => (
-    isValid(value, args, fields) ? '' : createError(error, args, label, value)
+const createRule = validate => (
+  (...args) => error => (value, label, fields) => (
+    validate(value, args, fields) ? '' : createError(error, args, label, value)
   )
 )
 
@@ -50,7 +51,7 @@ export const rules = {
   }),
 
   custom: validate => (
-    (value = '', label, fields) => {
+    (value, label, fields) => {
       let error = validate(value, fields)
       if (typeof error !== 'string') error = ''
       return error ? createError(error, void 0, label, value) : ''

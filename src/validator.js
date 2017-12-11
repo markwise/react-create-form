@@ -22,13 +22,12 @@ export const validateForm = state => {
   let entries = Object.entries(state)
   let fields = getFields(entries)
 
-  entries.forEach(([name, {label, value, rules, clean}]) => {
-    let field = {value}
+  entries.forEach(([name, {value, label, rules, clean}]) => {
+    let field = {value, errors: [], error: ''}
 
     // Does the field have validation rules
-    if (rules) {
+    if (rules.length) {
       let isValid = false
-      field = {...field, errors: [], error: ''}
 
       // Has the field been interacted with (not in an indeterminate state)
       if (!clean) {

@@ -814,10 +814,6 @@ An object containing the current state of the form.
 
 ### form.errors
 
-Type: Array
-
-Default: An empty array.
-
 An array of all errors for all fields that failed validation.
 
 Example
@@ -856,11 +852,7 @@ let {form} = this.props
 
 ### form.willSubmit
 
-Type: Boolean
-
-Default: If there are no fields to validate, the default is true, otherwise false.
-
-A boolean value indicating whether a form is valid or invalid. This is typically used to disable/enable a submit button.
+A boolean value indicating whether a form is valid or invalid. This is typically used to disable/enable a submit button. If there are no fields to validate, the default is true, otherwise false.
 
 ```javascript
 let {form} = this.props
@@ -882,11 +874,7 @@ An object keyed by the name of the field definition key (should be the name attr
 
 ### form[field].value
 
-Type: String | Array
-
-Default: The value set in the field definition object.
-
-The value will be an array if the HTML form element type is select-multiple, otherwise a string.
+An array if the HTML form element type is select-multiple, otherwise a string. The initial value is set in the field's definition entry.
 
 ```javascript
 let {form, onChange} = this.props
@@ -904,13 +892,7 @@ let {form, onChange} = this.props
 
 ### form[field].errors
 
-Type: Array
-
-Default: An empty array. This property only exists if a field will validate.
-
-An array of all field errors.
-
-Use this if you want to display all field errors at the same time.
+An array of all field errors. Use this if you want to display all field errors at the same time.
 
 ```javascript
 let {form, onChange} = this.props
@@ -935,13 +917,7 @@ let {form, onChange} = this.props
 
 ### form[field].error
 
-Type: String
-
-Default: An empty string. This property only exists if a field will validate.
-
-If a field has errors, it will be the first error in form[field].errors.
-
-Use this if you only want to display a single field error at a time.
+If a field has errors, it will be the first error in form[field].errors, otherwise, an empty string. Use this if you want to display one field error at a time.
 
 ```javascript
 let {form, onChange} = this.props
@@ -958,6 +934,16 @@ let {form, onChange} = this.props
     <div>{form.firstName.error}</div>
   }
 </div>
+```
+
+You can also just use the first error in form[field].errors.
+
+```javascript
+...
+{form.firstName.errors.length > 0 &&
+  <div>{form.firstName.errors[0]}</div>
+}
+...
 ```
 
 ## onChange()
