@@ -9,6 +9,11 @@ const validateField = ({rules, value, label}, fields) => {
   return errors
 }
 
+
+/**
+ * Returns an object of field name value pairs that is primarly used in custom
+ * rules to compare multiple field values.
+ */
 const getFields = entries => (
   entries.reduce((fields, [name, {value}]) => (
     {...fields, [name]: value}

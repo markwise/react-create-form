@@ -18,6 +18,25 @@ const filterForm = (state, blacklist = []) => (
   Object.entries(state).filter(([name]) => !blacklist.includes(name))
 )
 
+
+/**
+ * Returns the initial state derived from the field definition object.
+ *
+ * All field definition entries are normalized and have the same shape
+ * regardless if they validate or not.
+ *
+ * If clean is true, the field doesn't have a value and has not been interacted
+ * with. However, if a field has an initial value or a value is set, via
+ * onChange, the field is no longer clean (in an indeterminate state). This in
+ * combination with the rules property provides a cue for the validator to know
+ * if a field should be validated or not.
+ *
+ * @param {Object} fields
+ *    A field definition object.
+ *
+ * @returns {Object}
+ *    The form's initial state.
+ */
 const createInitialState = fields => (
   Object.entries(fields)
     .reduce((state, [name, {value = '', label = 'Field', rules = []}]) => (
@@ -25,13 +44,31 @@ const createInitialState = fields => (
     ), {})
 )
 
-const getDisplayName = Component => (
-  Component.displayName || Component.name || 'Component'
+
+/**
+ * Returns the HOC's display name. Creating the display name in this way is
+ * straight from the React docs on Higher-Order Components, which is useful for
+ * debugging.
+ */
+const getDisplayName = ({displayName, name = 'Component'}) => (
+  `ReactCreateForm(${displayName || name})`
 )
 
+
+/**
+ * Creates and returns the HOC.
+ *
+ * @param {Class} WrappedComponent
+ *    A form component.
+ *
+ * @param {Object} fields
+ *    A field definition object.
+ *
+ * @returns {Class}
+ */
 export const createForm = (WrappedComponent, fields) => (
-  class FormHOC extends Component {
-    static displayName = `FormHOC(${getDisplayName(WrappedComponent)})`
+  class ReactCreateForm extends Component {
+    static displayName = getDisplayName(WrappedComponent)
 
     constructor(props) {
       super(props)
@@ -51,7 +88,7 @@ export const createForm = (WrappedComponent, fields) => (
     handleChange(event) {
       let target = event.currentTarget
       let {name, type, value} = target
-      let field = {...this.state[name], value}
+      let field = {...this.state[name], value, clean: false}
 
       if (type === 'select-multiple') {
         field = {...field, value: [...target.selectedOptions].map(option => option.value)}
@@ -63,13 +100,14 @@ export const createForm = (WrappedComponent, fields) => (
         field = {...field, files: target.files}
       }
 
-      if (field.clean) field = {...field, clean: false}
       this.setState({[name]: field})
     }
 
 
     /**
-     * Reset form
+     * Resets field values to the initial state defined in the field
+     * definition object. This includes resetting fields that have been
+     * validated to an indeterminate state by setting clean to true.
      */
     handleReset(event) {
       event.preventDefault()
@@ -117,7 +155,7 @@ export const createForm = (WrappedComponent, fields) => (
      *    An optional list of fields to exclude from the resulting FormData.
      *
      * @returns {Promise}
-     *    A Promise that resolves to FormData.
+     *    A Promise that resolves it's value to FormData.
      */
     getFormData(blacklist) {
       let fields = filterForm(this.state, blacklist)
@@ -148,7 +186,7 @@ export const createForm = (WrappedComponent, fields) => (
      *    An optional list of fields to exclude from the resulting JSON.
      *
      * @returns {Promise}
-     *    A Promise that resolves to JSON.
+     *    A Promise that resolves it's value to JSON.
      */
     getFormDataAsJSON(blacklist) {
       let fields = filterForm(this.state, blacklist)

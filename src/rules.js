@@ -1,6 +1,6 @@
 const createError = (error = '', args = [], label, value) => {
   // Replace $1...$5 rule argument patterns
-  // Not used with custom rule validators
+  // Not used with custom rules
   error = args.reduce((acc, arg, index) => (
     acc.replace(new RegExp(`\\$${index + 1}`, 'g'), arg)
   ), error)
@@ -32,14 +32,14 @@ export const rules = {
   ends:     createRule((value, [match]) => value.indexOf(match, value.length - match.length) !== -1),
   contains: createRule((value, [match]) => value.indexOf(match) !== -1),
 
-  range: createRule((value, [min, max]) => {
+  range: createRule((value, [from, to]) => {
     value = Number(value)
-    return value >= min && value <= max
+    return value >= from && value <= to
   }),
 
-  between: createRule((value, [min, max]) => {
+  between: createRule((value, [from, to]) => {
     value = Number(value)
-    return value > min && value < max
+    return value > from && value < to
   }),
 
   equals: createRule((value, [list]) => {
