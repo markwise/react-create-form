@@ -1,14 +1,10 @@
 const createError = (error = '', args = [], label, value) => {
-  // Replace $1...$5 rule argument patterns
-  // Not used with custom rules
-  error = args.reduce((acc, arg, index) => (
-    acc.replace(new RegExp(`\\$${index + 1}`, 'g'), arg)
-  ), error)
-
-  // Replace $label, $value patterns
   error = error
+    .replace(/\$1/g, args[0])
+    .replace(/\$2/g, args[1])
     .replace(/\$label/g, label)
     .replace(/\$value/g, value)
+    .replace(/\\/g, '\\\\')
 
   return error ? eval('`' + error + '`') : 'Validation failed.'
 }
