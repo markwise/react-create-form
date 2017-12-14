@@ -532,18 +532,25 @@ rules.custom(value =>
 
 If a rule you're looking for doesn't exist, you can easily create it using a  matches or custom rule. Over time more rules will be added to the rules directory.
 
+**Length Rules**
 - [required](#required)
+- [length](#lengthlength)
 - [min](#minlength)
 - [max](#maxlength)
-- [length](#lengthlength)
-- [matches](#matchesregex)
-- [number](#number)
+
+**Matching Rules**
+- [equals](#equalslist)
 - [starts](#startsmatch)
 - [ends](#endsmatch)
 - [contains](#containsmatch)
+
+**Number Rules**
+- [number](#number)
 - [range](#rangefrom-to)
 - [between](#betweenfrom-to)
-- [equals](#equalslist)
+
+**Custom Rules**
+- [matches](#matchesregex)
 - [custom](#customvalidate)
 
 ### required
@@ -552,6 +559,16 @@ Test that a field has at least one character.
 
 ```javascript
 rules.required()(errors.required)
+```
+
+### length(length)
+
+Test that a field is an exact number of characters.
+
+**length (required)** - A number that is the exact number of characters allowed.
+
+```javascript
+rules.length(5)(errors.length)
 ```
 
 ### min(length)
@@ -574,32 +591,18 @@ Test that a field has at most a maximum number of characters.
 rules.max(3)(errors.max)
 ```
 
-### length(length)
+### equals(list)
 
-Test that a field is an exact number of characters.
+Test that a field is equal to one of the values in list.
 
-**length (required)** - A number that is the exact number of characters allowed.
-
-```javascript
-rules.length(5)(errors.length)
-```
-
-### matches(regex)
-
-Test that a field matches a pattern.
-
-**regex (required)** - A regular expression to match the field against.
+**list (required)** - A string value or array of values that a field should be equal to.
 
 ```javascript
-rules.matches(/^\d+$/)(errors.matches)
-```
+rules.equals('foo')(errors.equals)
 
-### number
+// or
 
-Test that a field is a number.
-
-```javascript
-rules.number()(errors.number)
+rules.equals(['foo', 'bar', 'baz'])(errors.equals)
 ```
 
 ### starts(match)
@@ -632,6 +635,14 @@ Test that a field contains a set of characters.
 rules.contains('or')(errors.contains)
 ```
 
+### number
+
+Test that a field is a number.
+
+```javascript
+rules.number()(errors.number)
+```
+
 ### range(from, to)
 
 Test that a field contains a number within a range.
@@ -656,18 +667,14 @@ Test that a field contains a number between a range.
 rules.between(3, 7)(errors.between)
 ```
 
-### equals(list)
+### matches(regex)
 
-Test that a field is equal to one of the values in list.
+Test that a field matches a pattern.
 
-**list (required)** - A string value or array of values that a field should be equal to.
+**regex (required)** - A regular expression to match the field against.
 
 ```javascript
-rules.equals('foo')(errors.equals)
-
-// or
-
-rules.equals(['foo', 'bar', 'baz'])(errors.equals)
+rules.matches(/^\d+$/)(errors.matches)
 ```
 
 ### custom(validate)
@@ -697,14 +704,14 @@ rules.custom((value, fields) =>
 )
 ```
 
-The error returned from a custom rule can also use variable substitution.
+The error returned from a custom rule can also use [variable substitution](#custom-errors).
 
 ```javascript
 rules.custom(value =>
   value.toString().trim().length > 0
     ? ''
-    // $label will be substituted for the label property defined in the field definition
     : '$label is required.'
+    // error: Field is required.
   }
 )
 ```
@@ -713,41 +720,81 @@ rules.custom(value =>
 
 # errors
 
-You can use errors provided by react-create-form or write your own.
+You can use errors provided by react-create-form or [write your own](#custom-errors).
 
-All rules have a matching error except custom.
-
-```
-errors.required
-errors.min
-errors.max
-errors.length
-errors.matches
-errors.number
-errors.starts
-errors.ends
-errors.contains
-errors.range
-errors.between
-errors.equals
-```
-
-## Write your own
-
-When writing your own errors, you can use variable substitution and conditional logic to dynamically create an error. This is how all of the default errors are written.
-
-For example, if we defined a required rule for a field with the label 'First Name', we can substitute it in the error.
+The following example shows the output of all default errors. All rules have a matching error except custom.
 
 ```javascript
-rules.required()('$label is required.')
-// error: First Name is required.
-```
-
-The label property must exist in the field definition, otherwise the more generic "Field" is used.
-
-```javascript
-rules.required()('$label is a required.')
+rules.required()(errors.required)
 // error: Field is required.
+
+// If a label property is defined in the field's definition entry, it's used
+// instead of the more generic "Field" in the error's output.
+
+rules.length(3)(errors.length)
+// error: Field must be 3 characters.
+
+rules.min(3)(errors.min)
+// error: Field must be at least 3 characters.
+
+rules.max(3)(errors.max)
+// error: Field must be at most 3 characters.
+
+rules.equals('foo')(errors.equals)
+// error: Field must be equal to foo.
+rules.equals(['foo', 'bar', 'baz'])(errors.equals)
+// error: Field must be equal to one of: foo,bar,baz.
+
+rules.starts('foo')(errors.starts)
+// error: Field must start with foo.
+
+rules.ends('baz')(errors.ends)
+// error: Field must end with baz.
+
+rules.contains('bar')(errors.contains)
+// error: Field must contain bar.
+
+rules.number()(errors.number)
+// error: Field must be a number.
+
+rules.range(1, 5)(errors.range)
+// error: Field must be a number from 1 to 5.
+
+rules.between(1, 5)(errors.between)
+// error: Field must be a number between 1 and 5.
+
+rules.matches(/^\d+$/)(errors.matches)
+// error: Field must match the pattern /^\d+$/.
+```
+
+## Custom Errors
+
+When writing your own errors, you can use variable substitution and conditional logic. This is how all of the default errors are written.
+
+For example, a field definition entry, with a label of "First Name", will be
+substituted in place of "$label" in the error's output.
+
+```javascript
+{
+  value: '',
+  label: 'First Name',
+  rules: [
+    rules.required()('$label is required.')
+    // error: First Name is required.
+  ]
+}
+```
+
+If the optional label property is omitted from the field's definition entry, the more generic "Field" is used.
+
+```javascript
+{
+  value: '',
+  rules: [
+    rules.required()('$label is required.')
+    // error: Field is required.
+  ]
+}
 ```
 
 We can substitute rule arguments.
@@ -757,7 +804,7 @@ rules.length(5)('$label must be $1 characters.')
 // error: Field must be 5 characters.
 ```
 
-Most rules have 1 argument, which corresponds to $1. Additional arguments will be $2, $3, ...etc if they exist.
+Most rules have 1 argument, which corresponds to $1. Additional arguments will be $2...$5 if they exist.
 
 ```javascript
 rules.between(3, 7)('$label must be a number between $1 and $2.')
@@ -768,7 +815,7 @@ We can substitute a field's value, although, it's a less common use case.
 
 ```javascript
 rules.required()('Please enter $value.')
-// error: Please enter foo bar baz.
+// error: Please enter qux.
 ```
 
 Finally, we can use conditional logic.
@@ -788,6 +835,7 @@ rules.custom(value =>
   value.toString().trim().length > 0
     ? ''
     : '$label is required.'
+    // error: Field is required.
   }
 )
 ```

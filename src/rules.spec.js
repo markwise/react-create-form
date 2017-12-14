@@ -34,9 +34,6 @@ describe('rules.required', () => {
   })
 })
 
-
-// Character length rule types
-
 describe('rules.length', () => {
   const validate = createValidator(rules.length(3)(errors.length))
 
@@ -86,9 +83,6 @@ describe('rules.max', () => {
     expect(validate('123456')).toBe(error)
   })
 })
-
-
-// Character matching rule types
 
 describe('rules.equals', () => {
   describe('one value', () => {
@@ -165,9 +159,6 @@ describe('rules.contains', () => {
   })
 })
 
-
-// Number rule types
-
 describe('rules.number', () => {
   const validate = createValidator(rules.number()(errors.number))
 
@@ -218,9 +209,6 @@ describe('rules.between', () => {
     expect(validate('x')).toBe(error)
   })
 })
-
-
-// Custom rule types
 
 describe('rules.matches', () => {
   const validate = createValidator(rules.matches(/^\d+$/)(errors.matches))
