@@ -17,6 +17,7 @@
     "build": "webpack",
     "start": "npm run build -- -w",
     "test": "jest",
+    "test:watch": "npm test -- --watch",
     "prepublishOnly": "run-s test build"
   },
   "dependencies": {
