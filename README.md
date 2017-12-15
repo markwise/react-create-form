@@ -591,11 +591,11 @@ Test that a field has at most a maximum number of characters.
 rules.max(3)(errors.max)
 ```
 
-### equals(list)
+### equals(match)
 
-Test that a field is equal to one of the values in list.
+Test that a field is equal to a set of characters.
 
-**list (required)** - A string value or array of values that a field should be equal to.
+**match (required)** - A match or an array of matches that a field should be equal to.
 
 ```javascript
 rules.equals('foo')(errors.equals)
@@ -609,30 +609,42 @@ rules.equals(['foo', 'bar', 'baz'])(errors.equals)
 
 Test that a field starts with a set of characters.
 
-**match (required)** - A string of characters that a field should start with.
+**match (required)** - A match or an array of matches that a field should start with.
 
 ```javascript
-rules.starts('Hello')(errors.starts)
+rules.starts('foo')(errors.starts)
+
+// or
+
+rules.starts(['foo', 'bar', 'baz'])(errors.starts)
 ```
 
 ### ends(match)
 
 Test that a field ends with a set of characters.
 
-**match (required)** - A string of characters that a field should end with.
+**match (required)** - A match or an array of matches that a field should end with.
 
 ```javascript
-rules.ends('World')(errors.ends)
+rules.ends('foo')(errors.ends)
+
+// or
+
+rules.ends(['foo', 'bar', 'baz'])(errors.ends)
 ```
 
 ### contains(match)
 
 Test that a field contains a set of characters.
 
-**match (required)** - A string of characters that a field should contain.
+**match (required)** - A match or an array of matches that a field should  contain.
 
 ```javascript
-rules.contains('or')(errors.contains)
+rules.contains('foo')(errors.contains)
+
+// or
+
+rules.contains(['foo', 'bar', 'baz'])(errors.contains)
 ```
 
 ### number
