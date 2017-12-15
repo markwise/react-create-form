@@ -1,7 +1,16 @@
 const createError = (error = '', args = [], label, value) => {
+  let arg1 = args[0]
+  let arg2 = args[1]
+
+  // Format rule arguments that are lists. Applies to equals, starts, ends and
+  // contains rules, which can optionally take a list of matches.
+  if (Array.isArray(arg1) && arg1.length > 1) {
+    arg1 = `one of: ${arg1.join(', ')}`
+  }
+
   error = error
-    .replace(/\$1/g, args[0])
-    .replace(/\$2/g, args[1])
+    .replace(/\$1/g, arg1)
+    .replace(/\$2/g, arg2)
     .replace(/\$label/g, label)
     .replace(/\$value/g, value)
     .replace(/\\/g, '\\\\')
@@ -18,15 +27,40 @@ const createRule = validate => (
 
 
 export const rules = {
+  // Length rules
+
   required: createRule(value => value.length > 0),
-  min:      createRule((value, [length]) => value.length >= length),
-  max:      createRule((value, [length]) => value.length <= length),
-  length:   createRule((value, [length]) => value.length === length),
-  matches:  createRule((value, [pattern]) => pattern.test(value)),
-  number:   createRule(value => /^\d+$/.test(value)),
-  starts:   createRule((value, [match]) => value.indexOf(match) === 0),
-  ends:     createRule((value, [match]) => value.indexOf(match, value.length - match.length) !== -1),
-  contains: createRule((value, [match]) => value.indexOf(match) !== -1),
+  length: createRule((value, [length]) => value.length === length),
+  min: createRule((value, [length]) => value.length >= length),
+  max: createRule((value, [length]) => value.length <= length),
+
+  // Matching rules
+
+  equals: createRule((value, [list]) => {
+    // Normalize rule argument as an array
+    if (!Array.isArray(list)) list = [list]
+    return list.includes(value)
+  }),
+
+  starts: createRule((value, [list]) => {
+    if (!Array.isArray(list)) list = [list]
+    return list.some(item => value.indexOf(item) === 0)
+  }),
+
+  ends: createRule((value, [list]) => {
+    if (!Array.isArray(list)) list = [list]
+    let l = value.length
+    return list.some(item => value.indexOf(item, l - String(item).length) !== -1)
+  }),
+
+  contains: createRule((value, [list]) => {
+    if (!Array.isArray(list)) list = [list]
+    return list.some(item => value.indexOf(item) !== -1)
+  }),
+
+  // Number rules
+
+  number: createRule(value => /^\d+$/.test(value)),
 
   range: createRule((value, [from, to]) => {
     value = Number(value)
@@ -38,10 +72,9 @@ export const rules = {
     return value > from && value < to
   }),
 
-  equals: createRule((value, [list]) => {
-    if (!Array.isArray(list)) list = [list]
-    return list.some(item => item === value)
-  }),
+  // Custom rules
+
+  matches: createRule((value, [pattern]) => pattern.test(value)),
 
   custom: validate => (
     (value, label, fields) => {

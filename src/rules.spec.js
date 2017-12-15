@@ -85,7 +85,7 @@ describe('rules.max', () => {
 })
 
 describe('rules.equals', () => {
-  describe('one value', () => {
+  describe('single match', () => {
     const validate = createValidator(rules.equals('foo')(errors.equals))
 
     it('should pass validation', () => {
@@ -95,12 +95,11 @@ describe('rules.equals', () => {
     it('should fail validation', () => {
       let error = 'Field must be equal to foo.'
       expect(validate('')).toBe(error)
-      expect(validate('bar')).toBe(error)
-      expect(validate('baz')).toBe(error)
+      expect(validate('foolish')).toBe(error)
     })
   })
 
-  describe('multiple values', () => {
+  describe('multiple matches', () => {
     const validate = createValidator(rules.equals(['foo', 'bar', 'baz'])(errors.equals))
 
     it('should pass validation', () => {
@@ -110,52 +109,140 @@ describe('rules.equals', () => {
     })
 
     it('should fail validation', () => {
-      let error = 'Field must be equal to one of: foo,bar,baz.'
+      let error = 'Field must be equal to one of: foo, bar, baz.'
       expect(validate('')).toBe(error)
-      expect(validate('qux')).toBe(error)
+      expect(validate('foolish')).toBe(error)
+      expect(validate('barmaid')).toBe(error)
+      expect(validate('bazooka')).toBe(error)
+    })
+
+    it('should use single match error format', () => {
+      let error = createValidator(rules.equals(['foo'])(errors.equals))('')
+      expect(error).toBe('Field must be equal to foo.')
     })
   })
 })
 
 describe('rules.starts', () => {
-  const validate = createValidator(rules.starts('pne')(errors.starts))
+  describe('single match', () => {
+    const validate = createValidator(rules.starts('foo')(errors.starts))
 
-  it('should pass validation', () => {
-    expect(validate('pneumonoultramicroscopicsilicovolcanoconiosis')).toBe('')
+    it('should pass validation', () => {
+      expect(validate('foolish')).toBe('')
+    })
+
+    it('should fail validation', () => {
+      let error = 'Field must start with foo.'
+      expect(validate('')).toBe(error)
+      expect(validate('samfoo')).toBe(error)
+    })
   })
 
-  it('should fail validation', () => {
-    let error = 'Field must start with pne.'
-    expect(validate('')).toBe(error)
-    expect(validate('sisoinoconaclovociliscipocsorcimartluonomuenp')).toBe(error)
+  describe('multiple matches', () => {
+    const validate = createValidator(rules.starts(['foo', 'bar', 'baz'])(errors.starts))
+
+    it('should pass validation', () => {
+      expect(validate('foolish')).toBe('')
+      expect(validate('barmaid')).toBe('')
+      expect(validate('bazooka')).toBe('')
+    })
+
+    it('should fail validation', () => {
+      let error = 'Field must start with one of: foo, bar, baz.'
+      expect(validate('')).toBe(error)
+      expect(validate('samfoo')).toBe(error)
+      expect(validate('lumbar')).toBe(error)
+      expect(validate('shabaz')).toBe(error)
+    })
+
+    it('should use single match error format', () => {
+      let error = createValidator(rules.starts(['foo'])(errors.starts))('')
+      expect(error).toBe('Field must start with foo.')
+    })
   })
 })
 
 describe('rules.ends', () => {
-  const validate = createValidator(rules.ends('sis')(errors.ends))
+  describe('single match', () => {
+    const validate = createValidator(rules.ends('foo')(errors.ends))
 
-  it('should pass validation', () => {
-    expect(validate('pneumonoultramicroscopicsilicovolcanoconiosis')).toBe('')
+    it('should pass validation', () => {
+      expect(validate('samfoo')).toBe('')
+    })
+
+    it('should fail validation', () => {
+      let error = 'Field must end with foo.'
+      expect(validate('')).toBe(error)
+      expect(validate('foolish')).toBe(error)
+    })
   })
 
-  it('should fail validation', () => {
-    let error = 'Field must end with sis.'
-    expect(validate('')).toBe(error)
-    expect(validate('sisoinoconaclovociliscipocsorcimartluonomuenp')).toBe(error)
+  describe('multiple matches', () => {
+    const validate = createValidator(rules.ends(['foo', 'bar', 'baz'])(errors.ends))
+
+    it('should pass validation', () => {
+      expect(validate('samfoo')).toBe('')
+      expect(validate('lumbar')).toBe('')
+      expect(validate('shabaz')).toBe('')
+    })
+
+    it('should fail validation', () => {
+      let error = 'Field must end with one of: foo, bar, baz.'
+      expect(validate('')).toBe(error)
+      expect(validate('foolish')).toBe(error)
+      expect(validate('barmaid')).toBe(error)
+      expect(validate('bazooka')).toBe(error)
+    })
+
+    it('should use single match error format', () => {
+      let error = createValidator(rules.ends(['foo'])(errors.ends))('')
+      expect(error).toBe('Field must end with foo.')
+    })
   })
 })
 
 describe('rules.contains', () => {
-  const validate = createValidator(rules.contains('volcano')(errors.contains))
+  describe('single match', () => {
+    const validate = createValidator(rules.contains('foo')(errors.contains))
 
-  it('should pass validation', () => {
-    expect(validate('pneumonoultramicroscopicsilicovolcanoconiosis')).toBe('')
+    it('should pass validation', () => {
+      expect(validate('foo')).toBe('')
+      expect(validate('samfoo')).toBe('')
+      expect(validate('foolish')).toBe('')
+    })
+
+    it('should fail validation', () => {
+      let error = 'Field must contain foo.'
+      expect(validate('')).toBe(error)
+      expect(validate('pneumonoultramicroscopicsilicovolcanoconiosis')).toBe(error)
+    })
   })
 
-  it('should fail validation', () => {
-    let error = 'Field must contain volcano.'
-    expect(validate('')).toBe(error)
-    expect(validate('foo')).toBe(error)
+  describe('multiple matches', () => {
+    const validate = createValidator(rules.contains(['foo', 'bar', 'baz'])(errors.contains))
+
+    it('should pass validation', () => {
+      expect(validate('foo')).toBe('')
+      expect(validate('bar')).toBe('')
+      expect(validate('baz')).toBe('')
+      expect(validate('foolish')).toBe('')
+      expect(validate('barmaid')).toBe('')
+      expect(validate('bazooka')).toBe('')
+      expect(validate('samfoo')).toBe('')
+      expect(validate('lumbar')).toBe('')
+      expect(validate('shabaz')).toBe('')
+    })
+
+    it('should fail validation', () => {
+      let error = 'Field must contain one of: foo, bar, baz.'
+      expect(validate('')).toBe(error)
+      expect(validate('pneumonoultramicroscopicsilicovolcanoconiosis')).toBe(error)
+    })
+
+    it('should use single match error format', () => {
+      let error = createValidator(rules.contains(['foo'])(errors.contains))('')
+      expect(error).toBe('Field must contain foo.')
+    })
   })
 })
 
