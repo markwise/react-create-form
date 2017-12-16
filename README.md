@@ -539,7 +539,7 @@ If a rule you're looking for doesn't exist, you can easily create it using a  ma
 - [max](#maxlength)
 
 **Matching Rules**
-- [equals](#equalslist)
+- [equals](#equalsmatch)
 - [starts](#startsmatch)
 - [ends](#endsmatch)
 - [contains](#containsmatch)
