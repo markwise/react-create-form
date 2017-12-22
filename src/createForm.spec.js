@@ -3,93 +3,200 @@ import {shallow} from 'enzyme'
 import {createForm} from './createForm'
 import {rules} from './rules'
 
-const createShallowWrapper = fields => {
+const createWrappedForm = fields => {
   let Form = () => <form></form>
-  let TestForm = createForm(Form, fields)
-  return shallow(<TestForm />)
+  return createForm(Form, fields)
 }
 
-describe('hoc', () => {
+const createShallowWrapper = (fields, props = {}) => {
+  let TestForm = createWrappedForm(fields)
+  return shallow(<TestForm {...props} />)
+}
+
+describe('HOC', () => {
   it('should have prototype', () => {
-    let Form = () => <form></form>
-    let TestForm = createForm(Form, {})
-    let p = TestForm.prototype
-    expect(p.handleChange).toEqual(expect.any(Function))
-    expect(p.handleReset).toEqual(expect.any(Function))
-    expect(p.validate).toEqual(expect.any(Function))
-    expect(p.getFormData).toEqual(expect.any(Function))
-    expect(p.getFormDataAsJSON).toEqual(expect.any(Function))
+    let TestForm = createWrappedForm({})
+    expect(TestForm.prototype).toMatchObject({
+      update: expect.any(Function),
+      reset: expect.any(Function),
+      getFormDataAsJSON: expect.any(Function),
+      getFormData: expect.any(Function),
+      validate: expect.any(Function),
+      handleReset: expect.any(Function),
+      handleChange: expect.any(Function)
+    })
   })
 
-  it('should initialize with default values', () => {
+  it('should initialize field state with default values', () => {
     let wrapper = createShallowWrapper({name: {}})
-    let {name} = wrapper.state()
-    expect(name.value).toBe('')
-    expect(name.label).toBe('Field')
-    expect(name.rules).toEqual(expect.any(Array))
-    expect(name.clean).toBe(true)
+    expect(wrapper.state('name')).toMatchObject({
+      value: '',
+      label: 'Field',
+      rules: expect.any(Array),
+      clean: true
+    })
   })
 
-  it('should initialize with definition values', () => {
+  it('should initialize field state with definition values', () => {
     let rules = []
-    let fields = {name: {value: 'Mark Wise', label: 'Name', rules}}
+    let fields = {name: {value: 'Jimmy Doolittle', label: 'Name', rules}}
     let wrapper = createShallowWrapper(fields)
-    let {name} = wrapper.state()
-    expect(name.value).toBe('Mark Wise')
-    expect(name.label).toBe('Name')
+    let name = wrapper.state('name')
     expect(name.rules).toBe(rules)
-    expect(name.clean).toBe(false)
+    expect(name).toMatchObject({
+      value: 'Jimmy Doolittle',
+      label: 'Name',
+      clean: false
+    })
+  })
+
+  it('should have default props', () => {
+    let wrapper = createShallowWrapper({})
+    let props = wrapper.instance().props
+    expect(props).toMatchObject({id: null, fields: expect.any(Object)})
+  })
+
+  it('should not call `update` when the component is mounted', () => {
+    let TestForm = createWrappedForm({})
+    let updateSpy = jest.spyOn(TestForm.prototype, 'update')
+    let wrapper = shallow(<TestForm />)
+    expect(updateSpy).not.toHaveBeenCalled()
+  })
+
+  it('should call `update` when the component is mounted', () => {
+    let TestForm = createWrappedForm({})
+    let updateSpy = jest.spyOn(TestForm.prototype, 'update')
+    let wrapper = shallow(<TestForm fields={{foo: ''}}/>)
+    expect(updateSpy).toHaveBeenCalled()
+  })
+
+  it('should update field state values', () => {
+    let fields = {firstName: {value: ''}, lastName: {value: ''}}
+    let TestForm = createWrappedForm(fields)
+    let updateSpy = jest.spyOn(TestForm.prototype, 'update')
+    let props = {fields: {firstName: 'Orville', lastName: 'Wright'}}
+    let wrapper = shallow(<TestForm {...props} />)
+
+    expect(updateSpy.mock.calls.length).toBe(1)
+    expect(wrapper.state('firstName').value).toBe('Orville')
+    expect(wrapper.state('lastName').value).toBe('Wright')
+
+    wrapper.setProps({fields: {firstName: 'Wilbur'}})
+    expect(updateSpy.mock.calls.length).toBe(2)
+    expect(wrapper.state('firstName').value).toBe('Wilbur')
+    expect(wrapper.state('lastName').value).toBe('Wright')
+  })
+
+  it('should not add extra fields to state', () => {
+    let fields = {foo: {value: ''}}
+    let wrapper = createShallowWrapper(fields)
+    expect(wrapper.state()).toHaveProperty('foo')
+
+    // Fields that don't have a field definition entry are ignored
+    wrapper.setProps({fields: {foo: 'foo', bar: 'bar', baz: 'baz'}})
+    expect(wrapper.state()).toHaveProperty('foo')
+    expect(wrapper.state()).not.toHaveProperty('bar')
+    expect(wrapper.state()).not.toHaveProperty('baz')
+  })
+
+  it('should reset fields to initial state', () => {
+    let fields = {firstName: {value: ''}, lastName: {value: ''}}
+    let TestForm = createWrappedForm(fields)
+    let resetSpy = jest.spyOn(TestForm.prototype, 'reset')
+    let wrapper = shallow(<TestForm />)
+
+    expect(wrapper.state('firstName').value).toBe('')
+    expect(wrapper.state('lastName').value).toBe('')
+
+    wrapper.setProps({fields: {firstName: 'Howard', lastName: 'Hughes'}})
+    expect(resetSpy).not.toHaveBeenCalled()
+    expect(wrapper.state('firstName').value).toBe('Howard')
+    expect(wrapper.state('lastName').value).toBe('Hughes')
+
+    // Setting fields to an empty object resets field values to the initial
+    // state defined in the form definition. This has the same effect as when
+    // the onReset handler is called.
+    wrapper.setProps({fields: {}})
+    expect(resetSpy).toHaveBeenCalled()
+    expect(wrapper.state('firstName').value).toBe('')
+    expect(wrapper.state('lastName').value).toBe('')
   })
 })
 
 
-describe('wrapped component', () => {
+describe('WrappedComponent', () => {
   it('should have props', () => {
     let wrapper = createShallowWrapper({})
-    let props = wrapper.props()
-    expect(props.form).toEqual(expect.any(Object))
-    expect(props.onChange).toEqual(expect.any(Function))
-    expect(props.onReset).toEqual(expect.any(Function))
-    expect(props.validate).toEqual(expect.any(Function))
-    expect(props.getFormData).toEqual(expect.any(Function))
-    expect(props.getFormDataAsJSON).toEqual(expect.any(Function))
+    expect(wrapper.props()).toMatchObject({
+      id: null, // null, number, or string
+      form: expect.any(Object),
+      onChange: expect.any(Function),
+      onReset: expect.any(Function),
+      validate: expect.any(Function),
+      getFormData: expect.any(Function),
+      getFormDataAsJSON: expect.any(Function)
+    })
+  })
+})
+
+
+describe('WrappedComponent.props.id', () => {
+  it('should default to `null`', () => {
+    let wrapper = createShallowWrapper({})
+    expect(wrapper.props().id).toBeNull()
   })
 
-  it('props.form should have shape', () => {
+  it('should be `props.id`', () => {
+    let wrapper = createShallowWrapper({}, {id: 1})
+    expect(wrapper.props().id).toBe(1)
+  })
+
+  it('should be `fields.id`', () => {
+    let wrapper = createShallowWrapper({}, {fields: {id: 1}})
+    expect(wrapper.props().id).toBe(1)
+  })
+
+  it('should override `fields.id`', () => {
+    // props.id takes precedence over fields.id
+    let wrapper = createShallowWrapper({}, {id: 1, fields: {id: 2}})
+    expect(wrapper.props().id).toBe(1)
+  })
+})
+
+
+describe('WrappedComponent.props.form', () => {
+  it('should have default shape', () => {
     let wrapper = createShallowWrapper({})
-    let props = wrapper.props()
-    let {form} = props
-    let {errors, willSubmit} = form
+    let {errors, willSubmit} = wrapper.props().form
     expect(errors).toEqual(expect.any(Array))
     expect(errors.length).toBe(0)
     // Always true when there are no fields to validate
     expect(willSubmit).toBe(true)
   })
 
-  it('props.form should have shape when fields will validate', () => {
+  it('should have default shape when fields will validate', () => {
     let wrapper = createShallowWrapper({name: {rules: [() => {}]}})
-    let props = wrapper.props()
-    let {form} = props
-    let {errors, willSubmit} = form
+    let {errors, willSubmit} = wrapper.props().form
     expect(errors).toEqual(expect.any(Array))
     expect(errors.length).toBe(0)
     // Will be false until all fields that will validate pass validation
     expect(willSubmit).toBe(false)
   })
 
-  it('props.form[field] should have shape', () => {
-    let wrapper = createShallowWrapper({name: {}})
-    let props = wrapper.props()
-    let {value, errors, error} = props.form.name
-    expect(value).toBe('')
-    expect(errors).toEqual(expect.any(Array))
-    expect(errors.length).toBe(0)
-    expect(error).toBe('')
+  describe('form[field]', () => {
+    it('should have default shape', () => {
+      let wrapper = createShallowWrapper({name: {}})
+      let {value, errors, error} = wrapper.props().form.name
+      expect(value).toBe('')
+      expect(errors).toEqual(expect.any(Array))
+      expect(errors.length).toBe(0)
+      expect(error).toBe('')
+    })
   })
 })
 
 
-describe('wrapped component props.onChange', () => {
+describe('WrappedComponent.props.onChange', () => {
   it('should manage select-single, textarea, and input types', () => {
     let wrapper = createShallowWrapper({name: {}})
     expect(wrapper.state().name.value).toBe('')
@@ -271,88 +378,71 @@ describe('wrapped component props.onChange', () => {
 })
 
 
-describe('wrapped component props.onReset', () => {
+describe('WrappedComponent.props.onReset', () => {
   it('should reset state', () => {
-    let wrapper = createShallowWrapper({
-      firstName: {rules: [() => {}]},
-      lastName: {rules: [() => {}]}
-    })
-
-    let initialState = {
-      firstName: {value: '', clean: true},
-      lastName: {value: '', clean: true}
-    }
-
-    expect(wrapper.state()).toMatchObject(initialState)
+    let TestForm = createWrappedForm({name: {value: ''}})
+    let resetSpy = jest.spyOn(TestForm.prototype, 'reset')
+    let wrapper = shallow(<TestForm />)
+    let initialState = {value: '', clean: true}
+    expect(wrapper.state('name')).toMatchObject(initialState)
 
     wrapper.props().onChange({
       currentTarget: {
         type: 'text',
-        name: 'firstName',
-        value: 'Mark'
+        name: 'name',
+        value: 'Chuck Yeager'
       }
     })
 
-    wrapper.props().onChange({
-      currentTarget: {
-        type: 'text',
-        name: 'lastName',
-        value: 'Wise'
-      }
-    })
-
-    expect(wrapper.state()).toMatchObject({
-      firstName: {value: 'Mark', clean: false},
-      lastName: {value: 'Wise', clean: false}
-    })
-
+    expect(wrapper.state('name')).toMatchObject({value: 'Chuck Yeager', clean: false})
     wrapper.props().onReset({preventDefault(){}})
-    expect(wrapper.state()).toMatchObject(initialState)
+    expect(resetSpy).toHaveBeenCalled()
+    expect(wrapper.state('name')).toMatchObject(initialState)
   })
 })
 
 
-describe('wrapped component props.validate', () => {
+describe('WrappedComponent.props.validate', () => {
   it('should validate fields', () => {
     let wrapper = createShallowWrapper({
-      firstName: {rules: [rules.required()()]},
-      lastName: {rules: [rules.required()()]}
+      firstName: {rules: [rules.required()('error')]},
+      lastName: {rules: [rules.required()('error')]}
     })
 
     let state = wrapper.state()
     expect(state.firstName.clean).toBe(true)
     expect(state.lastName.clean).toBe(true)
-
     let {form} = wrapper.props()
     expect(form.errors.length).toBe(0)
     let {firstName} = form
     expect(firstName.errors.length).toBe(0)
-    expect(firstName.error.length).toBe(0)
+    expect(firstName.error).toBe('')
     let {lastName} = form
     expect(lastName.errors.length).toBe(0)
-    expect(lastName.error.length).toBe(0)
+    expect(lastName.error).toBe('')
 
-    wrapper.props().validate(form).catch(() => {})
+    wrapper.props().validate().catch(() => {})
     wrapper.update()
 
     state = wrapper.state()
     expect(state.firstName.clean).toBe(false)
     expect(state.lastName.clean).toBe(false)
-
     form = wrapper.props().form
     expect(form.errors.length).toBe(2)
     firstName = form.firstName
     expect(firstName.errors.length).toBe(1)
-    expect(firstName.error.length).toBeGreaterThan(0)
+    expect(firstName.errors[0]).toBe('error')
+    expect(firstName.error).toBe('error')
     lastName = form.lastName
     expect(lastName.errors.length).toBe(1)
-    expect(lastName.error.length).toBeGreaterThan(0)
+    expect(lastName.errors[0]).toBe('error')
+    expect(lastName.error).toBe('error')
   })
 
   it('should resolve promise', done => {
     let wrapper = createShallowWrapper({
       name: {
-        value: 'Mark Wise',
+        value: 'Amelia Earhart',
         rules: [
           rules.required()('error')
         ]
@@ -377,17 +467,17 @@ describe('wrapped component props.validate', () => {
 })
 
 
-describe('wrapped component props.getFormData', () => {
+describe('WrappedComponent.props.getFormData', () => {
   it('should resolve promise with FormData', async () => {
     let wrapper = createShallowWrapper({
-      name: {value: 'Mark Wise'},
-      tags: {value: ['React', 'Redux']}
+      firstName: {value: 'Charles'},
+      lastName: {value: 'Lindbergh'}
     })
 
     expect.assertions(2)
     let formData = await wrapper.props().getFormData()
-    expect(formData.get('name')).toBe('Mark Wise')
-    expect(formData.get('tags')).toBe('React,Redux')
+    expect(formData.get('firstName')).toBe('Charles')
+    expect(formData.get('lastName')).toBe('Lindbergh')
   })
 
   it('should filter blacklist', async () => {
@@ -406,16 +496,16 @@ describe('wrapped component props.getFormData', () => {
 })
 
 
-describe('wrapped component props.getFormDataAsJSON', () => {
+describe('WrappedComponent.props.getFormDataAsJSON', () => {
   it('should resolve promise with JSON', async () => {
     let wrapper = createShallowWrapper({
-      name: {value: 'Mark Wise'},
-      tags: {value: ['React', 'Redux']}
+      firstName: {value: 'Charles'},
+      lastName: {value: 'Lindbergh'}
     })
 
     expect.assertions(1)
     let json = await wrapper.props().getFormDataAsJSON()
-    expect(json).toBe('{"tags":["React","Redux"],"name":"Mark Wise"}')
+    expect(json).toBe('{"lastName":"Lindbergh","firstName":"Charles"}')
   })
 
   it('should filter blacklist', async () => {

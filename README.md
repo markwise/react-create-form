@@ -23,22 +23,26 @@ prop-types >= 15.5.7
 ## Outline
 
 **Guides**
-- [State Management](#state-management)
-- [Validation](#validation)
+- [Form State Management](#form-state-management)
+- [Form Updates](#form-updates)
+- [Form Validation](#form-validation)
 
 **API**
 - [createForm](#createformformcomponent-fielddefinition)
 - [rules](#rules)
 - [errors](#errors)
-- [props](#props)
+
+**Props**
+- [HOC](#hoc)
+- [Wrapped Component](#wrapped-component)
 
 <br>
 
-# State Management
+# Form State Management
 
 First and foremost react-create-form manages form state. It handles state management for all HTML form element types. It also provides methods to get a form's state as FormData or JSON.
 
-Example
+### Example
 
 ```javascript
 import React, {Component} from 'react'
@@ -61,8 +65,7 @@ class LoginForm extends Component {
     return (
       <form
         autoComplete="off"
-        onSubmit={this.handleSubmit}
-      >
+        onSubmit={this.handleSubmit}>
         <div>
           <label>Username:</label>
           <input
@@ -70,7 +73,7 @@ class LoginForm extends Component {
             name="username"
             value={form.username.value}
             onChange={onChange}
-          >
+          />
         </div>
         <div>
           <label>Password:</label>
@@ -79,7 +82,7 @@ class LoginForm extends Component {
             name="password"
             value={form.password.value}
             onChange={onChange}
-          >
+          />
         </div>
         <div>
           <button type="submit">Login</button>
@@ -95,13 +98,13 @@ export default createForm(LoginForm, {
 })
 ```
 
-The function [createForm](#createformformcomponent-fielddefinition) returns a Higher-Order Component (HOC) that wraps your form component. The first argument is your form component. The second argument is a field definition object. The field definition key should match the name attribute of the HTML form element. The value property is required.
+The function [createForm](#createformformcomponent-fielddefinition) returns a Higher-Order Component (HOC) that wraps a form component. The first argument is a form component. The second argument is an object of field definition entries. The field definition name should match the name attribute of the HTML form element.
 
 ## Form element types
 
 ### select-multiple types
 
-With the exception of select-multiple types, which use an array, the value for all other types in the field definition object are strings.
+With the exception of select-multiple types, which use an array, the value for all other types are strings.
 
 ```javascript
 <div>
@@ -110,8 +113,7 @@ With the exception of select-multiple types, which use an array, the value for a
     name="colors"
     value={form.colors.value}
     multiple={true}
-    onChange={onChange}
-  >
+    onChange={onChange}>
     <option value="RED">Red</option>
     <option value="GREEN">Green</option>
     <option value="BLUE">Blue</option>
@@ -227,9 +229,11 @@ https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
 
 ## Resetting a form
 
-The props passed to the form component expose an onReset handler. It does exactly what you would expect it to. It resets field values to the initial state defined in the field definition object, and resets fields that have been validated to an indeterminate state.
+The props passed to the form component expose an `onReset` handler. It does exactly what you would expect it to. It resets field values to the initial state defined in the field definition object, and resets fields that have been validated to an indeterminate state.
 
 ```javascript
+let {onReset} = this.props
+...
 <form onReset={onReset}>
   <button type="reset">Reset</button>
 </form>
@@ -237,7 +241,7 @@ The props passed to the form component expose an onReset handler. It does exactl
 
 ## Submitting a form
 
-Although react-create-form doesn't handle submitting a form for you, it does provide you with two methods to get the form's state, getFormData and getFormDataAsJSON. As the method names describe, getFormData returns the form's state as an instance of FormData and getFormDataAsJSON returns the form's state as JSON.
+Although react-create-form doesn't handle submitting a form for you, it does provide you with two methods to get the form's state, `getFormData` and `getFormDataAsJSON`. As the names suggest, `getFormData` returns the form's state as an instance of **FormData** and `getFormDataAsJSON` returns the form's state as **JSON**.
 
 ```javascript
 async handleSubmit(event) {
@@ -251,17 +255,308 @@ async handleSubmit(event) {
 
 Besides the data format returned, there are a few differences to be aware of.
 
-When submitting files selected with a file type chooser, getFormDataAsJSON will base64 encode the file objects. This can significantly increase the size of data being transmitted, so it is recommended to always use getFormData when submitting files. But if you must, don't forget to decode them on the flip side.
+When submitting files selected with a file type chooser, `getFormDataAsJSON` will base64 encode the file objects. This can significantly increase the size of data being transmitted, so it is recommended to always use `getFormData` when submitting files. But if you must, don't forget to decode them on the flip side.
 
-When FormData is added to a fetch request, the Content-Type header is auto set to multipart/form-data, whereas, submitting JSON, you must manually set the Content-Type header to application/json.
+When FormData is added to a fetch request, the **Content-Type** header is auto set to **multipart/form-data**, whereas, submitting JSON, you must manually set the **Content-Type** header to **application/json**.
 
-When processing file objects submitted as FormData, the field name will have brackets appended to it. For example, a file type chooser with a name of "resume" can be referenced as "resume[]".
+When processing file objects submitted as FormData, the field name will have brackets appended to it. For example, a file type chooser with a name of **resume** can be referenced as **resume[]**.
 
 <br>
 
-# Validation
+# Form Updates
 
-The following form has one field and is validated when the field's value changes. Three validation [rules](#rules) have been added to the field's definition and will validate in the order they have been added to the rules property. If the field fails validation an error message will be displayed, otherwise, it will be hidden. The optional label property in the field definition is used for display in [errors](#errors). If omitted, the more generic "Field" is used. Finally, the submit button will be disabled until all fields that will validate have passed validation.
+The HOC returned from [createForm](#createformformcomponent-fielddefinition) has two optional props: `fields` and `id`. Both of these props are used for making updates. Where `fields` is used for updating a form's state from an external source, `id` is used for updating the form's state to an external source.
+
+The `fields` prop is an object of name value pairs where **name** should correspond to a field definition entry. If **name** doesn't have a matching entry, it's excluded. If **name** is `id`, it's passed as a prop to the wrapped component. If `fields` is an empty object, the form is reset following the [onReset](#onreset) handler rules, and the `id` will be reset to `null`.
+
+The `id` prop is passed to the wrapped component and will override `fields.id` if defined. This is useful if the data ID needs to be mapped to the physical name **id**. For example, mongoDB uses `_id` or maybe the ID's being used are more descriptive, such as `userId`.
+
+### Example 1
+
+In a component...
+
+```javascript
+render() {
+  // user.id will map directly to this.props.id on the wrapped component
+  let user = {id: 1, firstName: 'Charles', lastName: 'Lindbergh'}
+  return (
+    <UserProfileForm fields={user} />
+  )
+}
+```
+
+and if we needed to map the id...
+
+```javascript
+render() {
+  // user._id doesn't directly map to this.props.id and must be mapped
+  let user = {_id: 1, firstName: 'Howard', lastName: 'Hughes'}
+  return (
+    <UserProfileForm fields={user} id={user._id} />
+  )
+}
+```
+
+and if we wanted to reset the form...
+
+```javascript
+render() {
+  let user = {}
+  return (
+    <UserProfileForm fields={user} />
+  )
+}
+```
+
+**What's all the fuss about ID's?**
+
+It's important to note that react-create-form does nothing with an ID besides make it available as a prop on the wrapped form component. That way it can be  used to make updates.
+
+### Example 2
+
+A complete example might look like the following.
+
+**`UserProfileForm.js`**
+
+```javascript
+import React, {Component} from 'react'
+import createForm from 'react-create-form'
+
+class UserProfileForm extends Component {
+  constructor(props) {
+    super(props)
+    this.handleSubmit = this.handleSubmit.bind(this)
+  }
+
+  async handleSubmit(event) {
+    event.preventDefault()
+    let {id, getFormDataAsJSON, updateUser} = this.props
+    let data = await getFormDataAsJSON()
+    updateUser(id, data)
+  }
+
+  render() {
+    let {form, onChange} = this.props
+    let {firstName, lastName} = form
+
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <div>
+          <label>First Name</label>
+          <input
+            type="text"
+            name="firstName"
+            value={firstName.value}
+            onChange={onChange}
+          />
+        </div>
+        <div>
+          <label>Last Name</label>
+          <input
+            type="text"
+            name="lastName"
+            value={lastName.value}
+            onChange={onChange}
+          />
+        </div>
+        <button type="submit">Save Profile</button>
+      </form>
+    )
+  }
+}
+
+export default createForm(UserProfileForm, {
+  firstName: {value: ''},
+  lastName: {value: ''}
+})
+```
+
+**`App.js`**
+
+```javascript
+import React, {Component} from 'react'
+
+class App extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {user: {}}
+    this.updateUser = this.updateUser.bind(this)
+  }
+
+  async componentDidMount() {
+    // Make get request to fetch user
+    // Assume the following data was returned from the request
+    let user = {id: 1, firstName: 'Chuck', lastName: 'Yeger'}
+    this.setState({user})
+  }
+
+  async updateUser(id, data) {
+    // Make put request to update user
+    // Assume the following data was returned from the request
+    let user = {id: 1, firstName: 'Chuck', lastName: 'Yeager'}
+    this.setState({user})
+  }
+
+  render() {
+    return (
+      <UserProfileForm
+        fields={this.state.user}
+        updateUser={this.updateUser}
+      />
+    )
+  }
+}
+```
+
+### Example 3
+
+By testing for the existence of an ID, a form can be used to create or update an object model, for instance.
+
+**`UserProfileForm.js`**
+
+```javascript
+async handleSubmit(event) {
+  event.preventDefault()
+  let {id, getFormDataAsJSON, updateUser, createUser} = this.props
+  let data = await getFormDataAsJSON()
+
+  if (id === null) {
+    createUser(data)
+  } else {
+    updateUser(id, data)
+  }
+}
+
+render() {
+  let {id, form, onChange} = this.props
+  return (
+    ...
+    <button type="submit">
+      {id === null ? 'Create' : 'Update'} Profile
+    </button>
+    ...
+  )
+}
+```
+
+## Usage with Redux
+
+### Example 1
+
+In the following example, the `App` component is used as a Redux container to pass props to the `UserProfileForm` component.
+
+**`App.js`**
+
+```javascript
+import {connect} from 'react-redux'
+import {updateUser} from './actions'
+
+class App extends Component {
+  render() {
+    let {fields, updateUser} = this.props
+    return (
+      <UserProfileForm
+        fields={fields}
+        updateUser={updateUser}
+      />
+    )
+  }
+}
+
+const mapStateToProps = state => ({
+  // Assume state.selectedUser is the current user's ID
+  fields: state.users[state.selectedUser]
+  // Optionally we could map the ID
+  // id: state.selectedUser
+})
+
+export default connect(mapStateToProps, {updateUser})(App)
+```
+
+### Example 2
+
+We can also connect a Redux store directly to the `UserProfileForm`.
+
+**`UserProfileForm.js`**
+
+```javascript
+import {connect} from 'react-redux'
+import {updateUser} from './actions'
+
+class UserProfileForm extends Component {
+  ...
+}
+
+const Form = createForm(UserProfileForm, {
+  ...
+})
+
+const mapStateToProps = state => ({
+  // Assume state.selectedUser is the current user's ID
+  fields: state.users[state.selectedUser]
+  // Optionally we could map the id
+  // id: state.selectedUser
+})
+
+export default connect(mapStateToProps, {updateUser})(Form)
+```
+
+<br>
+
+# Form Validation
+
+A field definition entry has two optional properties used for validation: `label` and `rules`.
+
+The `label` property is used for display in [errors](#errors). If omitted, the more generic **Field** is used instead.
+
+The `rules` property is an array of one or more validation [rules](#rules) and are validated top down.
+
+### Example 1
+
+In a field definition object...
+
+```javascript
+export default createForm(ColorForm, {
+  color: {
+    value: '',
+    label: 'Favorite Color',
+    rules: [
+      rules.required()(errors.required)
+    ]
+  }
+})
+```
+
+Then to display errors...
+
+```javascript
+render() {
+  let {form, onChange} = this.props
+  let {color} = form
+  return (
+    <form>
+      <div>
+        <label>Favorite Color</label>
+        <input
+          type="text"
+          name="color"
+          value={color.value}
+          onChange={onChange}
+        />
+        {color.error &&
+          <div>{color.error}</div>
+        }
+      </div>
+    </form>
+  )
+}
+```
+
+### Example 2
+
+A complete example might look like the following.
+
+**`ColorForm.js`**
 
 ```javascript
 import React, {Component} from 'react'
@@ -280,28 +575,28 @@ class ColorForm extends Component {
 
   render() {
     let {form, onChange} = this.props
+    let {color} = form
     return (
-      <form
-        autoComplete="off"
-        onSubmit={this.handleSubmit}
-      >
+      <form onSubmit={this.handleSubmit}>
         <div>
           <label>Favorite Color</label>
           <input
             type="text"
             name="color"
-            value={form.color.value}
+            value={color.value}
             onChange={onChange}
           />
           // Display a single error
-          {form.color.error &&
-            <div>{form.color.error}</div>
+          {color.error &&
+            <div>{color.error}</div>
           }
         </div>
         <div>
           // The submit button will be disabled until the color field has
           // passed validation.
-          <button type="submit" disabled={!form.willSubmit}>
+          <button
+            type="submit"
+            disabled={!form.willSubmit}>
             Submit
           </button>
         </div>
@@ -313,10 +608,7 @@ class ColorForm extends Component {
 export default createForm(ColorForm, {
   color: {
     value: '',
-    // Optional label property that is used for display in errors. If omitted,
-    // the more generic "Field" is used.
     label: 'Favorite Color',
-    // The color field will validate against rules in this order.
     rules: [
       rules.required()(errors.required),
       rules.min(3)(errors.min),
@@ -326,33 +618,30 @@ export default createForm(ColorForm, {
 })
 ```
 
-The above example only shows one error for the color field at a time, even though the required and min rules can both fail at the same time. Using the errors property, we can show all field errors at the same time.
+The above example only shows one error for the color field even though the required and min rules can both be invalid at the same time. Using the `errors` property, we can show all field errors.
 
 ```javascript
-...
 <div>
   <label>Favorite Color</label>
   <input
     type="text"
     name="color"
-    value={form.color.value}
+    value={color.value}
     onChange={onChange}
   />
-  {form.color.errors.length > 0 &&
+  {color.errors.length > 0 &&
     <ul>
-      {form.color.errors.map(error =>
+      {color.errors.map(error =>
         <li key={error}>{error}</li>
       )}
     </ul>
   }
 </div>
-...
 ```
 
 A more traditional way of displaying errors is to show all errors for all fields that failed validation at the top of the form.
 
 ```javascript
-...
 {form.errors.length > 0 &&
   <div>
     {form.errors.map((errors, index) =>
@@ -369,17 +658,15 @@ A more traditional way of displaying errors is to show all errors for all fields
   <input
     type="text"
     name="color"
-    value={form.color.value}
+    value={color.value}
     onChange={onChange}
   />
 </div>
-...
 ```
 
 And if we just want to show one error per field...
 
 ```javascript
-...
 {form.errors.length > 0 &&
   <div>
     {form.errors.map((errors, index) =>
@@ -389,13 +676,11 @@ And if we just want to show one error per field...
     )}
   </div>
 }
-...
 ```
 
 We can also validate the form when it's submitted instead of disabling the submit button until all fields that will validate have passed validation. A field still validates when it's value changes. In this way, a user gets feedback when a field value changes and when a form is submitted, providing a less restrictive interface.
 
 ```javascript
-...
 async handleSubmit(event) {
   event.preventDefault()
   let {validate} = this.props
@@ -406,7 +691,6 @@ async handleSubmit(event) {
 }
 ...
 <button type="submit">Submit</button>
-...
 ```
 
 <br>
@@ -490,7 +774,7 @@ export default createForm(ColorForm, {
 
 # rules
 
-There are two types of rules standard and custom. With that said, all of the rules are standard except the one called custom.
+There are two types of rules: standard and custom. With that said, all of the rules are standard except the one called custom.
 
 ### Standard Rules
 
@@ -755,16 +1039,22 @@ rules.max(3)(errors.max)
 rules.equals('foo')(errors.equals)
 // error: Field must be equal to foo.
 rules.equals(['foo', 'bar', 'baz'])(errors.equals)
-// error: Field must be equal to one of: foo,bar,baz.
+// error: Field must be equal to one of: foo, bar, baz.
 
 rules.starts('foo')(errors.starts)
 // error: Field must start with foo.
+rules.starts(['foo', 'bar', 'baz'])(errors.starts)
+// error: Field must start with one of: foo, bar, baz.
 
 rules.ends('baz')(errors.ends)
 // error: Field must end with baz.
+rules.ends(['foo', 'bar', 'baz'])(errors.ends)
+// error: Field must end with one of: foo, bar, baz.
 
 rules.contains('bar')(errors.contains)
 // error: Field must contain bar.
+rules.contains(['foo', 'bar', 'baz'])(errors.contains)
+// error: Field must contain one of: foo, bar, baz.
 
 rules.number()(errors.number)
 // error: Field must be a number.
@@ -854,10 +1144,67 @@ rules.custom(value =>
 
 <br>
 
-# props
+# HOC
+
+The HOC returned from [createForm](#createformformcomponent-fielddefinition) has two optional props: `fields` and `id`. Both of these props are used for making updates. Where `fields` is used for updating a form's state from an external source, `id` is used for updating the form's state to an external source.
+
+- [fields](#fields)
+- [id](#id)
+
+## fields
+
+**Default:** `{}`
+
+The `fields` prop is an object of name value pairs where **name** should correspond to a field definition entry. If **name** doesn't have a matching entry, it's excluded. If **name** is `id`, it's passed as a prop to the wrapped component. If `fields` is an empty object, the form is reset following the [onReset](#onreset) handler rules, and the `id` will be reset to `null`.
+
+```javascript
+render() {
+  // user.id will map directly to this.props.id on the wrapped component
+  let user = {id: 1, firstName: 'Charles', lastName: 'Lindbergh'}
+  return (
+    <UserProfileForm fields={user} />
+  )
+}
+```
+
+and if we wanted to reset the form...
+
+```javascript
+render() {
+  let user = {}
+  return (
+    <UserProfileForm fields={user} />
+  )
+}
+```
+
+## id
+
+**Default:** `null`
+
+The `id` prop is passed to the wrapped component and will override `fields.id` if defined. This is useful if the data ID needs to be mapped to the physical name **id**. For example, mongoDB uses `_id` or maybe the ID's being used are more descriptive, such as `userId`.
+
+```javascript
+render() {
+  // user._id doesn't directly map to this.props.id and must be mapped
+  let user = {_id: 1, firstName: 'Howard', lastName: 'Hughes'}
+  return (
+    <UserForm fields={user} id={user._id} />
+  )
+}
+```
+
+**What's all the fuss about ID's?**
+
+It's important to note that react-create-form does nothing with an ID besides make it available as a prop on the wrapped form component. That way it can be  used to make updates.
+
+<br>
+
+# Wrapped Component
 
 The following props are exposed by the HOC to the wrapped form component.
 
+- [id](#id-1)
 - [form](#form)
 - [onChange](#onchange)
 - [onReset](#onreset)
@@ -865,7 +1212,15 @@ The following props are exposed by the HOC to the wrapped form component.
 - [getFormData](#getformdatablacklist)
 - [getFormDataAsJSON](#getformdataasjsonblacklist)
 
+## id
+
+**Default:** `null`
+
+The `fields.id` or `id` prop of the [HOC](#hoc) returned by `createForm`.
+
 ## form
+
+**Default:** `{errors: [], willSubmit: true}`
 
 An object containing the current state of the form.
 
@@ -875,11 +1230,11 @@ An object containing the current state of the form.
 - [form.willSubmit](#formwillsubmit)
 - [form[field]](#formfield)
 
-### form.errors
+## form.errors
+
+**Default:** `[]`
 
 An array of all errors for all fields that failed validation.
-
-Example
 
 ```javascript
 let {form} = this.props
@@ -897,7 +1252,7 @@ let {form} = this.props
 }
 ```
 
-And if we just want to show one error per field
+And if we just want to show one error per field...
 
 ```javascript
 let {form} = this.props
@@ -913,9 +1268,11 @@ let {form} = this.props
 }
 ```
 
-### form.willSubmit
+## form.willSubmit
 
-A boolean value indicating whether a form is valid or invalid. This is typically used to disable/enable a submit button. If there are no fields to validate, the default is true, otherwise false.
+**Default:** `true`
+
+A boolean value indicating whether a form is valid or invalid. This is typically used to disable/enable a submit button. If there are no fields to validate, the default is `true`, otherwise `false`.
 
 ```javascript
 let {form} = this.props
@@ -925,7 +1282,9 @@ let {form} = this.props
 </button>
 ```
 
-### form[field]
+## form[field]
+
+**Default:** `{value: '', errors: [], error: ''}`
 
 An object keyed by the name of the field definition key (should be the name attribute of the HTML form element).
 
@@ -935,7 +1294,9 @@ An object keyed by the name of the field definition key (should be the name attr
 - [form[field].errors](#formfielderrors)
 - [form[field].error](#formfielderror)
 
-### form[field].value
+## form[field].value
+
+**Default:** `''` or `[]`
 
 An array if the HTML form element type is select-multiple, otherwise a string. The initial value is set in the field's definition entry.
 
@@ -953,7 +1314,9 @@ let {form, onChange} = this.props
 </div>
 ```
 
-### form[field].errors
+## form[field].errors
+
+**Default:** `[]`
 
 An array of all field errors. Use this if you want to display all field errors at the same time.
 
@@ -978,9 +1341,11 @@ let {form, onChange} = this.props
 </div>
 ```
 
-### form[field].error
+## form[field].error
 
-If a field has errors, it will be the first error in form[field].errors, otherwise, an empty string. Use this if you want to display one field error at a time.
+**Default:** `''`
+
+If a field has errors, it will be the first error in `form[field].errors`, otherwise, an empty string. Use this if you want to display one field error at a time.
 
 ```javascript
 let {form, onChange} = this.props
@@ -999,14 +1364,12 @@ let {form, onChange} = this.props
 </div>
 ```
 
-You can also just use the first error in form[field].errors.
+You can also just use the first error in `form[field].errors`.
 
 ```javascript
-...
 {form.firstName.errors.length > 0 &&
   <div>{form.firstName.errors[0]}</div>
 }
-...
 ```
 
 ## onChange()
@@ -1064,8 +1427,6 @@ Returns a promise that has a resolved value equal to the form's state as an inst
 
 **blacklist (optional)** - an array of field names to exclude from the FormData result.
 
-Example
-
 ```javascript
 async handleSubmit(event) {
   event.preventDefault()
@@ -1074,7 +1435,7 @@ async handleSubmit(event) {
 }
 ```
 
-To exclude fields, use the blacklist option
+To exclude fields, use the blacklist option.
 
 ```javascript
 async handleSubmit(event) {
@@ -1095,8 +1456,6 @@ Returns a promise that has a resolved value equal to the form's state as JSON.
 
 **blacklist (optional)** - an array of field names to exclude from the JSON result.
 
-Example
-
 ```javascript
 async handleSubmit(event) {
   event.preventDefault()
@@ -1105,7 +1464,7 @@ async handleSubmit(event) {
 }
 ```
 
-To exclude fields, use the blacklist option
+To exclude fields, use the blacklist option.
 
 ```javascript
 async handleSubmit(event) {
