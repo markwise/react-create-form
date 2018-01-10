@@ -1,6 +1,6 @@
 {
   "name": "react-create-form",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A react form state management and validation framework.",
   "license": "ISC",
   "author": "Mark Wise",
