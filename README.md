@@ -1,5 +1,6 @@
 # react-create-form
 
+[![License ISC](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
 [![Build Status](https://travis-ci.org/markwise/react-create-form.svg?branch=master)](https://travis-ci.org/markwise/react-create-form)
 
 A React form state management and validation framework.
